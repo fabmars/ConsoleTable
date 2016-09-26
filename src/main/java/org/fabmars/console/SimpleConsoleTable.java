@@ -1,7 +1,7 @@
 package org.fabmars.console;
 
 /**
- * Created by mars on 17/09/2016.
+ * Created by fabmars on 17/09/2016.
  */
 
 import java.beans.BeanInfo;

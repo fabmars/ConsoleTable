@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by fGates on 19/09/16.
+ * Created by fabmars on 19/09/16.
  */
 public class ConsoleTableTester {
 
@@ -74,5 +74,4 @@ public class ConsoleTableTester {
       return usingWindows;
     }
   }
-
 }
