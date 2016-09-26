@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 /**
  * Created by fabmars on 17/09/16.
  *
- * Introspected ConsoleTableRenderer
+ * Introspected ConsoleTable
  * @param <T>
  */
-public class SimpleConsoleTable<T> extends ConsoleTableRenderer<T> {
+public class SimpleConsoleTable<T> extends ConsoleTable<T> {
 
   private int columns;
   private List<String> headers;

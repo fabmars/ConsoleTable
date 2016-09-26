@@ -12,7 +12,7 @@ import static org.fabmars.console.Utils.padRight;
 /**
  * Created by fabmars on 17/09/16.
  */
-public abstract class ConsoleTableRenderer<T> {
+public abstract class ConsoleTable<T> {
 
   public static final String BORDER_LEFT = "| ";
   public static final String COLUMN_SEPARATOR = " | ";
@@ -27,7 +27,7 @@ public abstract class ConsoleTableRenderer<T> {
   private int[] widths;
 
 
-  public ConsoleTableRenderer(Collection<T> col, String ifNull) {
+  public ConsoleTable(Collection<T> col, String ifNull) {
     this.ifNull = ifNull != null ? ifNull : DEFAULT_IF_NULL;
     list = new ArrayList<>(col);
   }
