@@ -15,11 +15,8 @@ public class ConsoleTableTester {
     Gadjo bill = new Gadjo("William Henry", "Gates III", LocalDate.of(1955, 10, 28), true);
     Gadjo steve = new Gadjo("Steven", "Jobs", LocalDate.of(1955, 2, 24), false);
 
-    List<Gadjo> list = new ArrayList<>();
-    list.add(lisa);
-    list.add(null);
-    list.add(bill);
-    list.add(steve);
+    List<Gadjo> list = Arrays.asList(lisa, null, bill, steve);
+
 
     // Object list
     System.out.println( new SimpleConsoleTable<>(list));
