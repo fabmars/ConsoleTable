@@ -25,8 +25,9 @@ public class ConsoleTableTester {
     System.out.println( new SimpleConsoleTable<>(list));
 
     new SimpleConsoleTable<>(list, false, "(null)").stream(System.out);
+    System.out.println();
 
-    new GadjoConsoleTable(list).stream(System.out);
+    System.out.println(new GadjoConsoleTable(list));
 
 
     // Scalar list
