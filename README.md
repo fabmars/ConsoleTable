@@ -22,7 +22,7 @@ The #toString() method triggers rendering, so you may directly use a ConsoleTabl
 ### List of Objects discovered via introspection.
 Column headers are the objects actual property names.  
 Default renderer is String.ValueOf()  
-Default alignemnt is right and null values are printed as empty Strings.
+Default alignment is right and null values are printed as empty Strings also by default.
 
     |=======================================================|
     |  BirthDate |     FirstName |  LastName | UsingWindows |
@@ -37,7 +37,7 @@ Default alignemnt is right and null values are printed as empty Strings.
     |=======================================================|
 
 ### Custom table based on above objects
-"First Name "and "Last Name" are right-aligned and bnull values should be printed as "-"  
+"First Name "and "Last Name" are right-aligned and null values should be printed as "-"  
 "Birth Date" is left-aligned, format is dd MMM yyyy and null values should be printed as "N/A" 
 "Born during Fall" is centered, format is "Yes"/"No" and null values become "?"
 
@@ -53,7 +53,7 @@ Default alignemnt is right and null values are printed as empty Strings.
     |        Steven |      Jobs | 24 févr. 1955 |        No        |
     |==============================================================|
 
-### Array of Strings
+### List<String>
 {"Hello", "how", "are", null, "you"}  
 Default column header is the scalar's simple class name
 
