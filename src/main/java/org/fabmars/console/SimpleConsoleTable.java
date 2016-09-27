@@ -24,27 +24,37 @@ public class SimpleConsoleTable<T> extends ConsoleTable<T> {
   private int columns;
   private List<String> headers;
   private List<Method> getters;
+  private DefaultConsoleCellRenderer defaultCellRenderer;
+
 
   public SimpleConsoleTable(Collection<T> list) {
-    this(list, null);
+    this(list, true);
+  }
+
+  public SimpleConsoleTable(Collection<T> list, boolean headers) {
+    this(list, headers, DefaultConsoleCellRenderer.EMPTY);
   }
 
   public SimpleConsoleTable(Collection<T> list, String ifNull) {
-    super(list, ifNull);
+    this(list, true, ifNull);
+  }
 
-    boolean isArrayElements = list.stream().filter(Objects::nonNull).anyMatch(o -> o.getClass().isArray());
-    if(isArrayElements) {
-      getters = Collections.emptyList();
-      headers = Collections.emptyList();
-      columns = list.stream().filter(Objects::nonNull).mapToInt(o -> ((Object[])o).length).max().orElse(0);
-    }
-    else try {
-      for(T object : list) {
+  public SimpleConsoleTable(Collection<T> list, boolean headers, String ifNull) {
+    super(list, headers);
+    defaultCellRenderer = new DefaultConsoleCellRenderer(ifNull);
+
+    boolean isArrayElements = list.isEmpty() || list.stream().filter(Objects::nonNull).anyMatch(o -> o.getClass().isArray());
+    if (isArrayElements) {
+      this.getters = Collections.emptyList();
+      this.headers = Collections.emptyList();
+      this.columns = list.stream().filter(Objects::nonNull).mapToInt(o -> ((Object[]) o).length).max().orElse(0);
+    } else try {
+      for (T object : list) {
         if (object != null) {
           Map<String, Method> propertyMap = inspect(object.getClass());
-          getters = new ArrayList<>(propertyMap.values());
-          headers = propertyMap.keySet().stream().map(h -> Utils.toUpperCaseFirstChar(h)).collect(Collectors.toList());
-          columns = headers.size();
+          this.getters = new ArrayList<>(propertyMap.values());
+          this.headers = propertyMap.keySet().stream().map(h -> Utils.toUpperCaseFirstChar(h)).collect(Collectors.toList());
+          this.columns = this.headers.size();
           break;
         }
       }
@@ -57,17 +67,33 @@ public class SimpleConsoleTable<T> extends ConsoleTable<T> {
     this(Arrays.asList(array));
   }
 
+  public SimpleConsoleTable(T[] array, boolean headers) {
+    this(Arrays.asList(array), headers);
+  }
+
   public SimpleConsoleTable(T[] array, String ifNull) {
     this(Arrays.asList(array), ifNull);
+  }
+
+  public SimpleConsoleTable(T[] array, boolean headers, String ifNull) {
+    this(Arrays.asList(array), headers, ifNull);
   }
 
   public SimpleConsoleTable(Map map) {
     this(map.entrySet());
   }
 
+  public SimpleConsoleTable(Map map, boolean headers) {
+    this(map.entrySet(), headers);
+  }
   public SimpleConsoleTable(Map map, String ifNull) {
     this(map.entrySet(), ifNull);
   }
+
+  public SimpleConsoleTable(Map map, boolean headers, String ifNull) {
+    this(map.entrySet(), headers, ifNull);
+  }
+
 
 
   protected static Map<String, Method> inspect(Class<?> clazz) throws IntrospectionException, NoSuchMethodException {
@@ -94,13 +120,13 @@ public class SimpleConsoleTable<T> extends ConsoleTable<T> {
   }
 
   @Override
-  public int getColumns() {
+  public int getColumnCount() {
     return columns;
   }
 
   @Override
   public boolean isHeaders() {
-    return !headers.isEmpty();
+    return super.isHeaders() && !headers.isEmpty();
   }
 
   @Override
@@ -130,5 +156,10 @@ public class SimpleConsoleTable<T> extends ConsoleTable<T> {
       cellValue = null;
     }
     return cellValue;
+  }
+
+  @Override
+  public ConsoleCellRenderer getDefaultCellRenderer(Class<?> clazz) {
+    return defaultCellRenderer;
   }
 }

@@ -19,8 +19,4 @@ The #toString() method triggers rendering, so you may directly use a ConsoleTabl
 
 
 ## TODO
-- Ability to stream the output (for big tables)
-- renderers per column
-- renderers per type
-- toggle column header or not
 - configurable table borders
