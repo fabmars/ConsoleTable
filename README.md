@@ -17,6 +17,101 @@ You may add more implementations.
 
 The #toString() method triggers rendering, so you may directly use a ConsoleTable instance in a Logger or System.out/err
 
+## Output
+
+### List of Objects discovered via introspection.
+Column headers are the objects actual property names.  
+Default renderer is String.ValueOf()  
+Default alignemnt is right and null values are printed as empty Strings.
+
+    |=======================================================|
+    |  BirthDate |     FirstName |  LastName | UsingWindows |
+    |=======================================================|
+    | 1969-11-15 |       Lisa T. |        Su |         true |
+    |-------------------------------------------------------|
+    |            |               |           |              |
+    |-------------------------------------------------------|
+    | 1955-10-28 | William Henry | Gates III |         true |
+    |-------------------------------------------------------|
+    | 1955-02-24 |        Steven |      Jobs |        false |
+    |=======================================================|
+
+### Custom table based on above objects
+"First Name "and "Last Name" are right-aligned and bnull values should be printed as "-"  
+"Birth Date" is left-aligned, format is dd MMM yyyy and null values should be printed as "N/A" 
+"Born during Fall" is centered, format is "Yes"/"No" and null values become "?"
+
+    |==============================================================|
+    |    First Name | Last Name | Birth Date    | Born during Fall |
+    |==============================================================|
+    |       Lisa T. |        Su | 15 nov. 1969  |       Yes        |
+    |--------------------------------------------------------------|
+    |             - |         - | N/A           |        ?         |
+    |--------------------------------------------------------------|
+    | William Henry | Gates III | 28 oct. 1955  |       Yes        |
+    |--------------------------------------------------------------|
+    |        Steven |      Jobs | 24 févr. 1955 |        No        |
+    |==============================================================|
+
+### Array of Strings
+{"Hello", "how", "are", null, "you"}  
+Default column header is the scalar's simple class name
+
+    |========|
+    | String |
+    |========|
+    |  Hello |
+    |--------|
+    |    how |
+    |--------|
+    |    are |
+    |--------|
+    |        |
+    |--------|
+    |   you? |
+    |========|
+
+### Array of int/Integers
+{null, 123, 456, 789}
+
+    |=========|
+    | Integer |
+    |=========|
+    |         |
+    |---------|
+    |     123 |
+    |---------|
+    |     456 |
+    |---------|
+    |     789 |
+    |=========|
+
+### Map<String, Integer>
+Default column headers are found via introspection.
+
+    |=======================|
+    |           Key | Value |
+    |=======================|
+    |       Lisa T. |    47 |
+    |-----------------------|
+    | William Henry |    61 |
+    |-----------------------|
+    |        Steven |       |
+    |=======================|
+
+### Object[][]
+No header to infer.  
+"N/A" should be printed for null values.
+
+    |==========================================|
+    |       Lisa T. |        Su | 1969 |  true |
+    |------------------------------------------|
+    | William Henry | Gates III |  N/A |   N/A |
+    |------------------------------------------|
+    |        Steven |      Jobs | 1955 | false |
+    |==========================================|
+
+Note the table can manage with arrays of different sizes.
 
 ## TODO
 - configurable table borders
