@@ -38,7 +38,7 @@ Default alignment is right and null values are printed as empty Strings also by 
 
 ### Custom table based on above objects
 "First Name "and "Last Name" are right-aligned and null values should be printed as "-"  
-"Birth Date" is left-aligned, format is dd MMM yyyy and null values should be printed as "N/A" 
+"Birth Date" is left-aligned, format is dd MMM yyyy in the current locale and null values should be printed as "N/A" 
 "Born during Fall" is centered, format is "Yes"/"No" and null values become "?"
 
     |==============================================================|
