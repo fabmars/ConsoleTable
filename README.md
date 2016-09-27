@@ -53,7 +53,7 @@ Default alignment is right and null values are printed as empty Strings also by 
     |        Steven |      Jobs | 24 févr. 1955 |        No        |
     |==============================================================|
 
-### List<String>
+### List\<String\>
 {"Hello", "how", "are", null, "you"}  
 Default column header is the scalar's simple class name
 
@@ -112,6 +112,11 @@ No header to infer.
     |==========================================|
 
 Note the table can manage with arrays of different sizes.
+
+### Empty List/Array
+    |==|
+    |==|
+
 
 ## TODO
 - configurable table borders
