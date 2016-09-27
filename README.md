@@ -86,7 +86,7 @@ Default column header is the scalar's simple class name
     |     789 |
     |=========|
 
-### Map<String, Integer>
+### Map\<String, Integer\>
 Default column headers are found via introspection.
 
     |=======================|
