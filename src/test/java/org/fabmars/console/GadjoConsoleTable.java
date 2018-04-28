@@ -9,7 +9,7 @@ import static java.lang.Boolean.TRUE;
 /**
  * Created by mars on 27/09/2016.
  */
-public class GadjoConsoleTable extends ConsoleTable<Gadjo> {
+public class GadjoConsoleTable extends GenericConsoleTable<Gadjo> {
 
   public GadjoConsoleTable(List<Gadjo> gadjos) {
     super(gadjos);

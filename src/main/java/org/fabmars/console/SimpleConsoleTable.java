@@ -1,9 +1,5 @@
 package org.fabmars.console;
 
-/**
- * Created by fabmars on 17/09/2016.
- */
-
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -12,44 +8,43 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by fabmars on 17/09/16.
  *
  * Introspected ConsoleTable
- * @param <T>
+ * @param <R>
  */
-public class SimpleConsoleTable<T> extends ConsoleTable<T> {
+public class SimpleConsoleTable<R> extends GenericConsoleTable<R> {
 
   private int columns;
   private List<String> headers;
   private List<Method> getters;
-  private DefaultConsoleCellRenderer defaultCellRenderer;
 
 
-  public SimpleConsoleTable(Collection<T> list) {
-    this(list, true);
+  public SimpleConsoleTable(Collection<R> col) {
+    this(col, true);
   }
 
-  public SimpleConsoleTable(Collection<T> list, boolean headers) {
-    this(list, headers, DefaultConsoleCellRenderer.EMPTY);
+  public SimpleConsoleTable(Collection<R> collection, boolean headers) {
+    this(collection, headers, DefaultConsoleCellRenderer.EMPTY);
   }
 
-  public SimpleConsoleTable(Collection<T> list, String ifNull) {
-    this(list, true, ifNull);
+  public SimpleConsoleTable(Collection<R> collection, String ifNull) {
+    this(collection, true, ifNull);
   }
 
-  public SimpleConsoleTable(Collection<T> list, boolean headers, String ifNull) {
-    super(list, headers);
-    defaultCellRenderer = new DefaultConsoleCellRenderer(ifNull);
+  public SimpleConsoleTable(Collection<R> collection, boolean headers, String ifNull) {
+    super(collection, headers, ifNull);
 
-    boolean isArrayElements = list.isEmpty() || list.stream().filter(Objects::nonNull).anyMatch(o -> o.getClass().isArray());
+    boolean isArrayElements = collection.isEmpty() || collection.stream().filter(Objects::nonNull).anyMatch(o -> o.getClass().isArray());
     if (isArrayElements) {
       this.getters = Collections.emptyList();
       this.headers = Collections.emptyList();
-      this.columns = list.stream().filter(Objects::nonNull).mapToInt(o -> ((Object[]) o).length).max().orElse(0);
+      this.columns = collection.stream().filter(Objects::nonNull).mapToInt(o -> ((Object[]) o).length).max().orElse(0);
     } else try {
-      for (T object : list) {
+      for (R object : collection) {
         if (object != null) {
           Map<String, Method> propertyMap = inspect(object.getClass());
           this.getters = new ArrayList<>(propertyMap.values());
@@ -63,19 +58,19 @@ public class SimpleConsoleTable<T> extends ConsoleTable<T> {
     }
   }
 
-  public SimpleConsoleTable(T... array) {
+  public SimpleConsoleTable(R... array) {
     this(Arrays.asList(array));
   }
 
-  public SimpleConsoleTable(T[] array, boolean headers) {
+  public SimpleConsoleTable(R[] array, boolean headers) {
     this(Arrays.asList(array), headers);
   }
 
-  public SimpleConsoleTable(T[] array, String ifNull) {
+  public SimpleConsoleTable(R[] array, String ifNull) {
     this(Arrays.asList(array), ifNull);
   }
 
-  public SimpleConsoleTable(T[] array, boolean headers, String ifNull) {
+  public SimpleConsoleTable(R[] array, boolean headers, String ifNull) {
     this(Arrays.asList(array), headers, ifNull);
   }
 
@@ -94,6 +89,20 @@ public class SimpleConsoleTable<T> extends ConsoleTable<T> {
     this(map.entrySet(), headers, ifNull);
   }
 
+  public SimpleConsoleTable(Stream<R> stream) {
+    this(stream.collect(Collectors.toSet()));
+  }
+
+  public SimpleConsoleTable(Stream<R> stream, boolean headers) {
+    this(stream.collect(Collectors.toSet()), headers);
+  }
+  public SimpleConsoleTable(Stream<R> stream, String ifNull) {
+    this(stream.collect(Collectors.toSet()), ifNull);
+  }
+
+  public SimpleConsoleTable(Stream<R> stream, boolean headers, String ifNull) {
+    this(stream.collect(Collectors.toSet()), headers, ifNull);
+  }
 
 
   protected static Map<String, Method> inspect(Class<?> clazz) throws IntrospectionException, NoSuchMethodException {
@@ -137,7 +146,7 @@ public class SimpleConsoleTable<T> extends ConsoleTable<T> {
 
   @Override
   public Object getCell(int row, int column) {
-    T object = getRow(row);
+    R object = getRow(row);
 
     Object cellValue;
     if(object != null) {
@@ -156,10 +165,5 @@ public class SimpleConsoleTable<T> extends ConsoleTable<T> {
       cellValue = null;
     }
     return cellValue;
-  }
-
-  @Override
-  public ConsoleCellRenderer getDefaultCellRenderer(Class<?> clazz) {
-    return defaultCellRenderer;
   }
 }

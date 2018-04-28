@@ -1,19 +1,19 @@
 package org.fabmars.console;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import static org.fabmars.console.Utils.padCenter;
-import static org.fabmars.console.Utils.padLeft;
-import static org.fabmars.console.Utils.padRight;
+import static org.fabmars.console.Utils.*;
 
 
 /**
  * Created by fabmars on 17/09/16.
  */
-public abstract class ConsoleTable<T> {
+public abstract class ConsoleTable<R> {
 
   public static final String BORDER_LEFT = "|";
   public static final String COLUMN_SEPARATOR = BORDER_LEFT;
@@ -22,28 +22,18 @@ public abstract class ConsoleTable<T> {
   public static final char BORDER_TOP_BOTTOM = '=';
   public static final char BORDER_LINE = '-';
 
-  protected final List<T> list;
   private boolean headers;
   private int[] widths;
 
 
-  public ConsoleTable(Collection<T> col) {
-    this(col, true);
-  }
-
-  public ConsoleTable(Collection<T> col, boolean headers) {
-    this.list = new ArrayList<>(col);
+  public ConsoleTable(boolean headers) {
     this.headers = headers;
   }
 
   public abstract int getColumnCount();
 
-  public final int getRowCount() {
-    return list.size();
-  }
-  protected final T getRow(int row) {
-    return list.get(row);
-  }
+  public abstract int getRowCount();
+  protected abstract R getRow(int row);
 
   public boolean isHeaders() {
     return headers;
