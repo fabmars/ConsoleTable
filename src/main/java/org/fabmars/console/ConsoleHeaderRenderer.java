@@ -4,8 +4,8 @@ public interface ConsoleHeaderRenderer<T> {
 
   /**
    * @param value
-   * @param column
+   * @param colNum
    * @return textual representation of the value
    */
-  String render(T value, int column);
+  String render(T value, int colNum);
 }

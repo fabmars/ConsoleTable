@@ -8,7 +8,7 @@ public class ResultSetConsoleTable extends ConsoleTable<ResultSet> {
 
   private final ResultSet rs;
   private int initialResultSetRow; // initial 0-based row
-  private final int rows, cols;
+  private final int rowCount, columnCount;
   private final String[] headers;
 
   public ResultSetConsoleTable(ResultSet rs) throws SQLException {
@@ -17,44 +17,44 @@ public class ResultSetConsoleTable extends ConsoleTable<ResultSet> {
     this.initialResultSetRow = rs.getRow(); //1-based
 
     ResultSetMetaData rsMetaData = rs.getMetaData();
-    this.cols = rsMetaData.getColumnCount();
-    this.rows = rs.last() ? rs.getRow() : 0;
+    this.columnCount = rsMetaData.getColumnCount();
+    this.rowCount = rs.last() ? rs.getRow() : 0;
     rs.beforeFirst(); // In all likelihood we'll scroll the table top to bottom.
 
-    this.headers = new String[cols];
-    for(int c = 0; c < cols; c++) {
-      this.headers[c] = rsMetaData.getColumnLabel(c+1);
+    this.headers = new String[columnCount];
+    for(int colNum = 0; colNum < columnCount; colNum++) {
+      this.headers[colNum] = rsMetaData.getColumnLabel(colNum+1);
     }
   }
 
 
   @Override
   public int getColumnCount() {
-    return cols;
+    return columnCount;
   }
 
   @Override
   public int getRowCount() {
-    return rows;
+    return rowCount;
   }
 
   @Override
-  public String getHeader(int c) {
-    return headers[c];
+  public String getHeader(int colNum) {
+    return headers[colNum];
   }
 
   /**
-   * @param r 0-based row number (whereas ResultSet is 1-based)
+   * @param rowNum 0-based row number (whereas ResultSet is 1-based)
    * @return the ResultSet positioned on the requested row
    */
   @Override
-  protected ResultSet getRow(int r) {
+  public ResultSet getRow(int rowNum) {
     try {
       int current = rs.getRow() - 1; //to 0-based, will be -1 if we're positioned beforeFirst
-      for(; r < current; current--) {
+      for(; rowNum < current; current--) {
         rs.previous();
       }
-      for(; r > current; current++) {
+      for(; rowNum > current; current++) {
         rs.next();
       }
     }
@@ -65,9 +65,9 @@ public class ResultSetConsoleTable extends ConsoleTable<ResultSet> {
   }
 
   @Override
-  public Object getCell(ResultSet rs, int column) {
+  public Object getCell(ResultSet rs, int colNum) {
     try {
-      return rs.getObject(column+1);
+      return rs.getObject(colNum+1);
     }
     catch (SQLException e) {
       throw new RuntimeException(e);

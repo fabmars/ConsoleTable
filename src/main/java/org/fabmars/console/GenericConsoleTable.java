@@ -19,8 +19,8 @@ public abstract class GenericConsoleTable<R> extends ConsoleTable<R> {
     return list.size();
   }
   @Override
-  protected final R getRow(int r) {
-    return list.get(r);
+  public final R getRow(int rowNum) {
+    return list.get(rowNum);
   }
 
 

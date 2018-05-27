@@ -8,12 +8,12 @@ public class ToStringConsoleRenderer implements ConsoleHeaderRenderer<Object>, C
   }
 
   @Override
-  public String render(Object value, int column) {
-    return render(value, -1, column);
+  public String render(Object value, int colNum) {
+    return render(value, -1, colNum);
   }
 
   @Override
-  public String render(Object value, int row, int column) {
+  public String render(Object value, int rowNum, int colNum) {
     return String.valueOf(value);
   }
 }

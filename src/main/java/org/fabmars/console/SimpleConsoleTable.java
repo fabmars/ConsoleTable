@@ -23,8 +23,8 @@ public class SimpleConsoleTable<R> extends GenericConsoleTable<R> {
   private final List<Method> getters;
   private final DefaultConsoleRenderer cellRenderer;
 
-  public SimpleConsoleTable(Collection<R> col) {
-    this(col, true);
+  public SimpleConsoleTable(Collection<R> collection) {
+    this(collection, true);
   }
 
   public SimpleConsoleTable(Collection<R> collection, boolean headers) {
@@ -148,19 +148,19 @@ public class SimpleConsoleTable<R> extends GenericConsoleTable<R> {
   }
 
   @Override
-  public String getHeader(int c) {
-    return headers.get(c);
+  public String getHeader(int colNum) {
+    return headers.get(colNum);
   }
 
   @Override
-  public Object getCell(R row, int column) {
+  public Object getCell(R row, int colNum) {
     if(row.getClass().isArray()) {
       Object[] array = (Object[])row;
       // Testing length because different rows (which are arrays) may have different widths
-      return column < array.length ? array[column] : NonExistent.instance;
+      return colNum < array.length ? array[colNum] : NonExistent.instance;
     }
     else try {
-      return getters.get(column).invoke(row);
+      return getters.get(colNum).invoke(row);
     }
     catch (IllegalAccessException | InvocationTargetException e) {
       throw new RuntimeException(e);

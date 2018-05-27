@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.fabmars.console.Utils.*;
@@ -23,7 +24,11 @@ public abstract class ConsoleTable<R> {
   public static final char BORDER_LINE = '-';
 
   private boolean headers;
-  private int[] widths;
+
+  Boolean preProcessed = false;
+  private int[] widthsCache;
+  private String[] headerRenderCache;
+  private List<String[]> cellRenderCache;
 
 
   public ConsoleTable(boolean headers) {
@@ -31,79 +36,100 @@ public abstract class ConsoleTable<R> {
   }
 
   public abstract int getColumnCount();
-
   public abstract int getRowCount();
-  protected abstract R getRow(int r);
-
-  /**
-   * Tells whether a given row should be rendered.
-   * For instance you might not want to render null rows
-   * @param row
-   * @return
-   */
-  public boolean isRenderable(R row) {
-    return true;
-  }
 
   public boolean isHeaders() {
     return headers;
   }
+  public abstract Object getHeader(int column);
 
-  public abstract Object getHeader(int c);
+  public abstract R getRow(int rowNum);
+
+  /**
+   * Tells whether a given row should be rendered.
+   * For instance you might not want to render null rows
+   * @param rowObject
+   * @param rowNum
+   * @return
+   */
+  public boolean isRenderable(R rowObject, int rowNum) {
+    return true;
+  }
 
   /**
    * gets a property of an object aimed at one column of the table
    * @param row a non-null row object
-   * @param column the target table column
+   * @param colNum the target table column
    * @return the cell value
    */
-  public abstract Object getCell(R row, int column);
+  public abstract Object getCell(R row, int colNum);
 
 
-  public final int getWidth(int column) {
-    if(widths == null) {
-      widths = calcWidths();
-    }
-    return widths[column];
+  public final int getRenderedWidth(int colNum) {
+    ensurePreProcessed(false); // Not necessary per se, just in case someone calls this method independently of stream()
+    return widthsCache[colNum];
   }
 
-  protected final int[] calcWidths() {
-    int columnCount = getColumnCount();
-    int[] widths = new int[columnCount];
+  public final String getRenderedHeader(int colNum) {
+    ensurePreProcessed(false); // Not necessary per se, just in case someone calls this method independently of stream()
+    String headerString = headerRenderCache[colNum];
+    return pad(headerString, getRenderedWidth(colNum), getAlignment(colNum));
+  }
 
-    if(isHeaders()) {
-      for (int c = 0; c < columnCount; c++) {
-        widths[c] = safeRenderHeader(getHeader(c), c).length();
-      }
-    }
+  private String getRenderedCell(int rowNum, int colNum) {
+    ensurePreProcessed(false); // Not necessary per se, just in case someone calls this method independently of stream()
+    String cellString = cellRenderCache.get(rowNum)[colNum];
+    return pad(cellString, getRenderedWidth(colNum), getAlignment(colNum));
+  }
 
-    int rowCount = getRowCount();
-    for(int r = 0; r < rowCount; r++) {
-      R row = getRow(r);
-      if(isRenderable(row)) {
-        for(int c = 0; c < columnCount; c++) {
-          Object cellValue = row != null ? getCell(row, c) : NonExistent.instance;
-          int len = safeRenderCell(cellValue, r, c).length();
-          if (widths[c] < len) {
-            widths[c] = len;
-          }
+  protected synchronized final void ensurePreProcessed(boolean force) {
+    if(!preProcessed || force) {
+      int columnCount = getColumnCount();
+      widthsCache = new int[columnCount];
+      headerRenderCache = new String[columnCount];
+
+      if (isHeaders()) {
+        for (int colNum = 0; colNum < columnCount; colNum++) {
+          String renderedHeader = safeRenderHeader(getHeader(colNum), colNum);
+          headerRenderCache[colNum] = renderedHeader;
+          widthsCache[colNum] = renderedHeader.length();
         }
       }
-    }
 
-    return widths;
+      int rowCount = getRowCount();
+      cellRenderCache = new LinkedList<>();
+      for (int rowNum = 0; rowNum < rowCount; rowNum++) {
+        R row = getRow(rowNum);
+        if (isRenderable(row, rowNum)) {
+          String[] rowCache = new String[columnCount];
+          for (int colNum = 0; colNum < columnCount; colNum++) {
+            Object cellValue = row != null ? getCell(row, colNum) : NonExistent.instance;
+            String renderedCell = safeRenderCell(cellValue, rowNum, colNum);
+            rowCache[colNum] = renderedCell;
+
+            int len = renderedCell.length();
+            if (widthsCache[colNum] < len) {
+              widthsCache[colNum] = len;
+            }
+          }
+
+          cellRenderCache.add(rowCache);
+        }
+      }
+      preProcessed = true;
+    }
   }
 
 
-  public Align getAlignment(int column) {
+  public Align getAlignment(int colNum) {
     return Align.RIGHT;
   }
 
-  public ConsoleHeaderRenderer getHeaderRenderer(int column) {
+  public ConsoleHeaderRenderer getHeaderRenderer(int colNum) {
     return null;
   }
 
-  public ConsoleCellRenderer getCellRenderer(int row, int column) {
+  public ConsoleCellRenderer getCellRenderer(int rowNum, int colNum) {
     return null;
   }
 
@@ -131,32 +157,40 @@ public abstract class ConsoleTable<R> {
     }
   }
 
+  public String toString(String charsetName) {
+    try(ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      stream(baos);
+      return baos.toString(charsetName);
+    }
+    catch(IOException e) {
+      throw new RuntimeException(e); // Not likely to happen
+    }
+  }
+
   public void stream(OutputStream os) {
+    ensurePreProcessed(true); //forcing at each rendering in case the underlying datas have changed
+
     PrintStream ps = new PrintStream(os);
-    int rowCount = getRowCount();
     int columnCount = getColumnCount();
 
     int borderlessWidth = 3 * (columnCount-1);
-    for(int c = 0; c < columnCount; c++) {
-      borderlessWidth += getWidth(c);
+    for(int colNum = 0; colNum < columnCount; colNum++) {
+      borderlessWidth += getRenderedWidth(colNum); // calls preProcess
     }
-
-    List<String> rowValues;
 
     // Top line
     separator(ps, BORDER_TOP_BOTTOM, borderlessWidth);
 
     // Headers
-    rowValues = new ArrayList<>(columnCount);
-
     if(isHeaders()) {
+      List<String> paddedHeaderValues = new ArrayList<>(columnCount);
+
       ps.append(BORDER_LEFT).append(BORDER_PADDING);
-      for (int c = 0; c < columnCount; c++) {
-        Object headerValue = getHeader(c);
-        String headerString = safeRenderHeader(headerValue, c);
-        rowValues.add(pad(headerString, getWidth(c), getAlignment(c)));
+      for (int colNum = 0; colNum < columnCount; colNum++) {
+        String renderedHeader = getRenderedHeader(colNum);
+        paddedHeaderValues.add(renderedHeader);
       }
-      ps.append(String.join(BORDER_PADDING + COLUMN_SEPARATOR + BORDER_PADDING, rowValues));
+      ps.append(String.join(BORDER_PADDING + COLUMN_SEPARATOR + BORDER_PADDING, paddedHeaderValues));
       ps.append(BORDER_PADDING).println(BORDER_RIGHT);
 
       // Separator
@@ -166,26 +200,22 @@ public abstract class ConsoleTable<R> {
     boolean canDrawLine = false;
 
     // Table data
-    for(int r = 0; r < rowCount; r++) {
-      R row = getRow(r);
-      if(isRenderable(row)) {
-
-        // Separator. It's more efficient to do it now than after an actual line.
-        if(canDrawLine) {
-          separator(ps, BORDER_LINE, borderlessWidth);
-        }
-        canDrawLine = true;
-
-        rowValues = new ArrayList<>(columnCount);
-        ps.append(BORDER_LEFT).append(BORDER_PADDING);
-        for (int c = 0; c < columnCount; c++) {
-          Object cellValue = row != null ? getCell(row, c) : NonExistent.instance;
-          String cellString = safeRenderCell(cellValue, r, c);
-          rowValues.add(pad(cellString, getWidth(c), getAlignment(c)));
-        }
-        ps.append(String.join(BORDER_PADDING + COLUMN_SEPARATOR + BORDER_PADDING, rowValues));
-        ps.append(BORDER_PADDING).println(BORDER_RIGHT);
+    int rowCount = cellRenderCache.size();
+    for(int rowNum = 0; rowNum < rowCount; rowNum++) {
+      // Separator. It's easier to test like this than after an actual line.
+      if(canDrawLine) {
+        separator(ps, BORDER_LINE, borderlessWidth);
       }
+      canDrawLine = true;
+
+      List<String> paddedRowValues = new ArrayList<>(columnCount);
+      ps.append(BORDER_LEFT).append(BORDER_PADDING);
+      for (int colNum = 0; colNum < columnCount; colNum++) {
+        String renderedCell = getRenderedCell(rowNum, colNum);
+        paddedRowValues.add(renderedCell);
+      }
+      ps.append(String.join(BORDER_PADDING + COLUMN_SEPARATOR + BORDER_PADDING, paddedRowValues));
+      ps.append(BORDER_PADDING).println(BORDER_RIGHT);
     }
 
     // Bottom
@@ -193,6 +223,7 @@ public abstract class ConsoleTable<R> {
 
     ps.flush();
   }
+
 
   protected String pad(String txt, int length, Align align) {
     char compChar = BORDER_PADDING;
@@ -224,13 +255,13 @@ public abstract class ConsoleTable<R> {
   /**
    * Renderes a textual representation of the header cell
    * @param value
-   * @param column
+   * @param colNum
    * @return textual representation of the header cell. MUST NOT return null
    */
-  private final String safeRenderHeader(Object value, int column) {
-    String result = renderHeader(value, column);
+  private final String safeRenderHeader(Object value, int colNum) {
+    String result = renderHeader(value, colNum);
     if(result == null) {
-      result = ToStringConsoleRenderer.instance.render(value, column);
+      result = ToStringConsoleRenderer.instance.render(value, colNum);
     }
     return result;
   }
@@ -249,30 +280,30 @@ public abstract class ConsoleTable<R> {
     return result;
   }
 
-  private final String safeRenderCell(Object value, int row, int column) {
-    String result = renderCell(value, row, column);
+  private final String safeRenderCell(Object value, int rowNum, int colNum) {
+    String result = renderCell(value, rowNum, colNum);
     if(result == null) {
-      result = ToStringConsoleRenderer.instance.render(value, row, column);
+      result = ToStringConsoleRenderer.instance.render(value, rowNum, colNum);
     }
     return result;
   }
 
-  protected String renderCell(Object value, int row, int column) {
+  protected String renderCell(Object value, int rowNum, int colNum) {
     ConsoleCellRenderer cellRenderer;
     if(NonExistent.isIt(value)) {
       cellRenderer = getDefaultCellRenderer(NonExistent.class);
     }
     else {
-      cellRenderer = getCellRenderer(row, column);
+      cellRenderer = getCellRenderer(rowNum, colNum);
       if(cellRenderer == null) {
-        Class<?> columnClass = getColumnClass(column);
+        Class<?> columnClass = getColumnClass(colNum);
         cellRenderer = getDefaultCellRenderer(columnClass);
       }
     }
 
     String result = null;
     if(cellRenderer != null) {
-      result = cellRenderer.render(value, row, column);
+      result = cellRenderer.render(value, rowNum, colNum);
     }
     return result;
   }
