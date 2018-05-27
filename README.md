@@ -3,7 +3,7 @@
 Sometimes one needs to display tabular data from a console java app.
 The Clojure guys have print-table (https://clojuredocs.org/clojure.pprint/print-table). Now you have one in Java too.
 
-As of today the class supports: lists or arrays of scalars (Strings, ints...), Maps, Lists or arrays of Objects
+As of today the class supports: lists or arrays of scalars (Strings, ints...), Maps, Lists, Streams or arrays of Objects
 It was developed in a couple of hours for a q&d project, reusing old code of mine, take it as-is.
 
 It requires Java 8 but could easily be retrofitted for Java 7 or 6.
@@ -11,6 +11,10 @@ It requires Java 8 but could easily be retrofitted for Java 7 or 6.
 
 ## How it works
 ConsoleTable is a simple class remotely inspired by Swing's Tables which enables you to display the contents of tabular data in a log or on the console.
+
+GenericConsoleTable is a List-based abstract implementation. Choose this one if you know the format of the data you're rendering.
+
+ResultSetConsoleTable is an implementation suited for JDBC's ResultSets.
 
 SimpleConsoleTable is one implementation that uses introspection on the input data.
 You may add more implementations.
@@ -119,4 +123,5 @@ Note the table can manage with arrays of different sizes.
 
 
 ## TODO
-- configurable table borders
+- Configurable table borders
+- 
