@@ -18,17 +18,29 @@ public class ConsoleTableTester {
     List<Gadjo> list = Arrays.asList(lisa, null, bill, steve);
 
 
-    // Object list
+    // Object list rendering null lines
     System.out.println( new SimpleConsoleTable<>(list));
 
+    // Object list NOT rendering null lines
+    System.out.println( new SimpleConsoleTable(list) {
+      @Override
+      public boolean isRenderable(Object row) {
+        return row != null;
+      }
+    });
+
+    // Object list without headers and custom null value
     new SimpleConsoleTable<>(list, false, "(null)").stream(System.out);
     System.out.println();
 
+
+    // Object list with custom ConsoleTable
     System.out.println(new GadjoConsoleTable(list));
 
 
     // Scalar list
     System.out.println( new SimpleConsoleTable<>("Hello", "how", "are", null, "you?"));
+    // Scalar list
     System.out.println( new SimpleConsoleTable<>(null, 123, 456, 789));
 
 

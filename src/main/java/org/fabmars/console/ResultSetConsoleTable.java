@@ -10,13 +10,8 @@ public class ResultSetConsoleTable extends ConsoleTable<ResultSet> {
   private int initialResultSetRow; // initial 0-based row
   private final int rows, cols;
   private final String[] headers;
-  private final DefaultConsoleCellRenderer defaultCellRenderer;
 
   public ResultSetConsoleTable(ResultSet rs) throws SQLException {
-    this(rs, DefaultConsoleCellRenderer.EMPTY);
-  }
-
-  public ResultSetConsoleTable(ResultSet rs, String ifNull) throws SQLException {
     super(true);
     this.rs = rs;
     this.initialResultSetRow = rs.getRow(); //1-based
@@ -30,7 +25,6 @@ public class ResultSetConsoleTable extends ConsoleTable<ResultSet> {
     for(int c = 0; c < cols; c++) {
       this.headers[c] = rsMetaData.getColumnLabel(c+1);
     }
-    this.defaultCellRenderer = new DefaultConsoleCellRenderer(ifNull);
   }
 
 
@@ -44,18 +38,23 @@ public class ResultSetConsoleTable extends ConsoleTable<ResultSet> {
     return rows;
   }
 
+  @Override
+  public String getHeader(int c) {
+    return headers[c];
+  }
+
   /**
-   * @param row 0-based row number (whereas ResultSet is 1-based)
+   * @param r 0-based row number (whereas ResultSet is 1-based)
    * @return the ResultSet positioned on the requested row
    */
   @Override
-  protected ResultSet getRow(int row) {
+  protected ResultSet getRow(int r) {
     try {
       int current = rs.getRow() - 1; //to 0-based, will be -1 if we're positioned beforeFirst
-      for(;row < current; current--) {
+      for(; r < current; current--) {
         rs.previous();
       }
-      for(;row > current; current++) {
+      for(; r > current; current++) {
         rs.next();
       }
     }
@@ -66,23 +65,13 @@ public class ResultSetConsoleTable extends ConsoleTable<ResultSet> {
   }
 
   @Override
-  public String getHeader(int column) {
-    return headers[column];
-  }
-
-  @Override
-  public Object getCell(int row, int column) {
+  public Object getCell(ResultSet rs, int column) {
     try {
-      return getRow(row).getObject(column+1);
+      return rs.getObject(column+1);
     }
     catch (SQLException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  @Override
-  public ConsoleCellRenderer getDefaultCellRenderer(Class<?> clazz) {
-    return defaultCellRenderer;
   }
 
   public ResultSet restoreInitialRow() {

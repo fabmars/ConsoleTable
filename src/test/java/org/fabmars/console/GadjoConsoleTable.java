@@ -12,7 +12,7 @@ import static java.lang.Boolean.TRUE;
 public class GadjoConsoleTable extends GenericConsoleTable<Gadjo> {
 
   public GadjoConsoleTable(List<Gadjo> gadjos) {
-    super(gadjos);
+    super(gadjos, true);
   }
 
   @Override
@@ -21,8 +21,8 @@ public class GadjoConsoleTable extends GenericConsoleTable<Gadjo> {
   }
 
   @Override
-  public Object getHeader(int column) {
-    switch (column) {
+  public Object getHeader(int c) {
+    switch (c) {
       case 0:
         return "First Name";
       case 1:
@@ -37,30 +37,24 @@ public class GadjoConsoleTable extends GenericConsoleTable<Gadjo> {
   }
 
   @Override
-  public Object getCell(int row, int column) {
-    Gadjo gadjo = getRow(row);
-    if(gadjo != null) {
-      switch (column) {
-        case 0:
-          return gadjo.getFirstName();
-        case 1:
-          return gadjo.getLastName();
-        case 2:
-          return gadjo.getBirthDate();
-        case 3:
-          LocalDate birthDate = gadjo.getBirthDate();
-          if(birthDate != null) {
-            LocalDate start = birthDate.withMonth(9).withDayOfMonth(23), end = birthDate.withMonth(12).withDayOfMonth(20); //inclusive
-            return birthDate.compareTo(start) >= 0 && birthDate.compareTo(end) <= 0;
-          } else {
-            return null;
-          }
-        default:
+  public Object getCell(Gadjo gadjo, int column) {
+    switch (column) {
+      case 0:
+        return gadjo.getFirstName();
+      case 1:
+        return gadjo.getLastName();
+      case 2:
+        return gadjo.getBirthDate();
+      case 3:
+        LocalDate birthDate = gadjo.getBirthDate();
+        if(birthDate != null) {
+          LocalDate start = birthDate.withMonth(9).withDayOfMonth(23), end = birthDate.withMonth(12).withDayOfMonth(20); //inclusive
+          return birthDate.compareTo(start) >= 0 && birthDate.compareTo(end) <= 0;
+        } else {
           return null;
-      }
-    }
-    else {
-      return null;
+        }
+      default:
+        return null;
     }
   }
 
@@ -94,6 +88,11 @@ public class GadjoConsoleTable extends GenericConsoleTable<Gadjo> {
   }
 
   @Override
+  public ConsoleCellRenderer getCellRenderer(int row, int column) {
+    return column == 3 ? booleanCellRenderer : null;
+  }
+
+  @Override
   public ConsoleCellRenderer getDefaultCellRenderer(Class<?> clazz) {
     if(LocalDate.class.equals(clazz)) {
       return localDateCellRenderer;
@@ -102,30 +101,29 @@ public class GadjoConsoleTable extends GenericConsoleTable<Gadjo> {
       return booleanCellRenderer;
     }
     else {
-      return new DefaultConsoleCellRenderer("-");
+      return new DefaultConsoleRenderer("-");
     }
   }
 
   private final static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
-  private final static ConsoleCellRenderer localDateCellRenderer = new ConsoleCellRenderer<LocalDate>() {
-    @Override
-    public String render(LocalDate value, int row, int column) {
-      if (value != null) {
-        return dateTimeFormatter.format(value);
+
+  private final static ConsoleCellRenderer localDateCellRenderer = (value, row, column) -> {
+    if (value != null) {
+      if (value instanceof LocalDate) {
+        return dateTimeFormatter.format((LocalDate) value);
       } else {
-        return "N/A";
+        return null;
       }
+    } else {
+      return "N/A";
     }
   };
 
-  private final static ConsoleCellRenderer booleanCellRenderer = new ConsoleCellRenderer<Boolean>() {
-    @Override
-    public String render(Boolean value, int row, int column) {
-      if (value != null) {
-        return TRUE.equals(value) ? "Yes" : "No";
-      } else {
-        return "?";
-      }
+  private final static ConsoleCellRenderer booleanCellRenderer = (value, row, column) -> {
+    if (value != null) {
+      return TRUE.equals(value) ? "Yes" : "No";
+    } else {
+      return "?";
     }
   };
 }

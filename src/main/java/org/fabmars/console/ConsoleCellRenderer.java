@@ -7,9 +7,9 @@ public interface ConsoleCellRenderer<T> {
 
   /**
    * @param value
-   * @param row -1 when drawing the header
+   * @param row
    * @param column
-   * @return
+   * @return textual representation of the value
    */
   String render(T value, int row, int column);
 }
